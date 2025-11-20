@@ -77,6 +77,17 @@ def test_split_long_content_long():
     assert all(len(chunk) <= 1000 for chunk in result)
 
 
+def test_split_long_content_paragraph_breaking():
+    """Ensure paragraphs longer than the limit are force-split."""
+    sentence = "word " * 250
+    content = sentence.strip()
+    result = _split_long_content(content, max_length=200)
+    assert len(result) > 1
+    assert all(len(chunk) <= 200 for chunk in result)
+    # ensure split respects word boundaries when possible
+    assert all(chunk.endswith("word") or content.endswith(chunk) for chunk in result)
+
+
 def test_format_blocks_paragraph():
     """Test formatting simple paragraph."""
     content = "This is a paragraph."
@@ -177,14 +188,14 @@ def test_create_page_success(mock_init_client):
 
 
 @patch("src.notion.client.initialize_client")
-def test_create_page_no_database_id():
+def test_create_page_no_database_id(mock_init_client):
     """Test that missing database ID raises ValueError."""
     with pytest.raises(ValueError, match="Database ID is required"):
         create_page(database_id="", title="Test", content="Content")
 
 
 @patch("src.notion.client.initialize_client")
-def test_create_page_no_title():
+def test_create_page_no_title(mock_init_client):
     """Test that missing title raises ValueError."""
     with pytest.raises(ValueError, match="Title is required"):
         create_page(database_id="db-123", title="", content="Content")

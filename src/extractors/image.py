@@ -6,7 +6,11 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from anthropic import Anthropic
+try:
+    from anthropic import Anthropic
+except ImportError:
+    Anthropic = None
+
 from dotenv import load_dotenv
 from PIL import Image
 
@@ -73,15 +77,11 @@ def extract_from_image(image_path: str, api_key: Optional[str] = None) -> str:
         ValueError: If image format is not supported or extraction fails
         ImportError: If required libraries are not installed
     """
-    # Check if Anthropic is available
-    try:
-        from anthropic import Anthropic
-    except ImportError:
+    if Anthropic is None:
         raise ImportError(
             "anthropic library is required for image extraction. "
             "Install it with: pip install anthropic"
         )
-    
     image_file = Path(image_path)
     
     if not image_file.exists():

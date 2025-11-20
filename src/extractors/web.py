@@ -10,6 +10,25 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger(__name__)
 
 
+def _looks_like_hostname(netloc: str) -> bool:
+    """Return True if netloc appears to be a resolvable hostname or IP."""
+    if not netloc:
+        return False
+
+    hostname = netloc.split(":")[0]
+    if not hostname:
+        return False
+
+    hostname_lower = hostname.lower()
+    if hostname_lower == "localhost":
+        return True
+
+    if hostname.replace(".", "").isdigit():
+        return True
+
+    return "." in hostname
+
+
 def extract_from_url(url: str, timeout: int = 10) -> Dict[str, str]:
     """
     Extract content from a web page URL.
@@ -34,13 +53,14 @@ def extract_from_url(url: str, timeout: int = 10) -> Dict[str, str]:
     
     # Validate URL format
     parsed = urlparse(url)
-    if not parsed.scheme or not parsed.netloc:
-        raise ValueError(f"Invalid URL format: {url}")
-    
-    # Ensure URL has a scheme
-    if not parsed.scheme.startswith("http"):
+
+    # Ensure URL has a scheme (insert https if missing)
+    if not parsed.scheme:
         url = f"https://{url}"
         parsed = urlparse(url)
+
+    if not parsed.scheme or not parsed.netloc or not _looks_like_hostname(parsed.netloc):
+        raise ValueError(f"Invalid URL format: {url}")
     
     try:
         logger.info(f"Fetching content from URL: {url}")

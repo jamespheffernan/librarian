@@ -104,42 +104,45 @@ def _get_heading_level(line: str) -> int:
     return 1  # Default to level 1 for lines ending with :
 
 
+def _force_split_text(text: str, max_length: int) -> List[str]:
+    """
+    Split a single string into chunks no longer than max_length.
+    """
+    parts = []
+    remaining = text.strip()
+
+    while len(remaining) > max_length:
+        split_pos = remaining.rfind(" ", 0, max_length)
+        if split_pos <= 0:
+            split_pos = max_length
+        parts.append(remaining[:split_pos].strip())
+        remaining = remaining[split_pos:].strip()
+
+    if remaining:
+        parts.append(remaining)
+
+    return parts
+
+
 def _split_long_content(content: str, max_length: int = NOTION_BLOCK_CONTENT_LIMIT) -> List[str]:
     """
     Split long content into chunks that fit within Notion's block limit.
-    
-    Args:
-        content: Content to split
-        max_length: Maximum length per chunk
-        
-    Returns:
-        List of content chunks
+    The function first separates paragraphs by double newlines, then
+    splits each paragraph into smaller pieces if it exceeds the limit.
     """
     if len(content) <= max_length:
-        return [content]
-    
+        return [content.strip()]
+
     chunks = []
-    current_chunk = ""
-    
-    # Try to split at paragraph boundaries
-    paragraphs = content.split("\n\n")
-    
+    paragraphs = [para.strip() for para in content.split("\n\n") if para.strip()]
+
     for para in paragraphs:
-        # If adding this paragraph would exceed limit, save current chunk and start new one
-        if current_chunk and len(current_chunk) + len(para) + 2 > max_length:
-            chunks.append(current_chunk.strip())
-            current_chunk = para
+        if len(para) <= max_length:
+            chunks.append(para)
         else:
-            if current_chunk:
-                current_chunk += "\n\n" + para
-            else:
-                current_chunk = para
-    
-    # Add remaining chunk
-    if current_chunk:
-        chunks.append(current_chunk.strip())
-    
-    return chunks
+            chunks.extend(_force_split_text(para, max_length))
+
+    return [chunk for chunk in chunks if chunk]
 
 
 def format_blocks(content: str) -> List[Dict]:
