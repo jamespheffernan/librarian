@@ -152,6 +152,13 @@ Build a comprehensive CLI tool that accepts multiple input types (images, PDFs, 
 4. Add integration tests for happy paths
 5. Update documentation with usage examples
 
+### Phase 7: Twitter/X Thread Support
+**Success Criteria:** The CLI detects Twitter/X status URLs, captures threaded text plus embedded images, and publishes annotated Notion pages. Tests and docs cover the workflow.
+
+1. Build `src/extractors/twitter.py` (using `snscrape`) to follow `conversation_id` threads, capture rendered text, and list referenced media.
+2. Update `_extract_content_from_url`/CLI so Twitter thread URLs are routed through the new extractor and metadata (author, tweet count, image URLs) flows into cleaning and title generation.
+3. Add focused tests for Twitter thread handling and document the capability in README/usage notes.
+
 ## Project Status Board
 
 - [x] Phase 1: Project Setup and Core Infrastructure
@@ -160,10 +167,11 @@ Build a comprehensive CLI tool that accepts multiple input types (images, PDFs, 
 - [x] Phase 4: Notion Integration
 - [x] Phase 5: CLI Integration
 - [x] Phase 6: Testing and Refinement
+- [x] Phase 7: Twitter/X Thread Support
 
 ## Current Status / Progress Tracking
 
-**Status:** Complete
+**Status:** Complete (Twitter/X thread support added and verified via tests)
 
 **Completed:**
 1. ✓ Phase 1: Project setup with directory structure, requirements, config files, CLI skeleton
@@ -172,10 +180,11 @@ Build a comprehensive CLI tool that accepts multiple input types (images, PDFs, 
 4. ✓ Phase 4: Notion client with block formatting, page creation, database lookup
 5. ✓ Phase 5: Full CLI integration with all arguments and error handling
 6. ✓ Phase 6: Testing configuration, .gitignore, integration tests
+7. ✓ Phase 7: Twitter/X thread extraction, metadata, tests, and docs
 
 **Next Steps:**
-- User testing with real API keys
-- Optional: Add more integration tests with real API calls (when API keys available)
+- Monitor Twitter thread coverage with real threads (images + replies)
+- Keep an eye on `snscrape` for breaking changes (update dependency when needed)
 
 ## Executor's Feedback or Assistance Requests
 
@@ -188,6 +197,7 @@ None. All phases completed successfully.
 - Notion block content limit is 2000 characters - implemented splitting logic
 - Image extractor converts all formats to RGB JPEG for Claude vision API compatibility
 - Web extractor uses common content selectors to find main article content
+- [2025-11-20] Twitter/X threads now use `snscrape` to follow `conversation_id`s so we capture every tweet + image URL in a thread before creating a Notion page.
 - PDF extractor provides helpful error messages for image-based PDFs
 
 ## Branch Name
@@ -201,6 +211,7 @@ None. All phases completed successfully.
 **Key Files:**
 - `src/main.py` - CLI entry point
 - `src/extractors/` - Content extraction modules
+- `src/extractors/twitter.py` - Twitter/X thread extractor
 - `src/processors/` - AI processing (title generation, cleaning)
 - `src/notion/client.py` - Notion API integration
 - `config/config.yaml` - Configuration
@@ -219,4 +230,5 @@ None. All phases completed successfully.
 - click>=8.1.7
 - pytest>=7.4.0
 - pytest-mock>=3.12.0 (for mocking API calls)
+- snscrape>=0.4.0 (for Twitter/X thread scraping)
 

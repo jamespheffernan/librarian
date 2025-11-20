@@ -11,7 +11,9 @@ from src.extractors import (
     extract_from_image,
     extract_from_pdf,
     extract_from_text,
+    extract_twitter_thread,
     extract_from_url,
+    looks_like_twitter_thread,
 )
 from src.notion import create_page, get_database_id
 from src.processors import clean_content, generate_title
@@ -89,6 +91,16 @@ def _extract_content_from_url(url: str) -> tuple[str, str, dict]:
     click.echo(f"Fetching content from URL: {url}")
     
     try:
+        if looks_like_twitter_thread(url):
+            click.echo("Detected Twitter/X thread – fetching threaded tweets")
+            thread_data = extract_twitter_thread(url)
+            content = thread_data["content"]
+            metadata = thread_data.get("metadata", {})
+            metadata.setdefault("url", url)
+            metadata.setdefault("page_title", thread_data.get("title", ""))
+            metadata["source_detail"] = "Twitter thread"
+            return content, "twitter-thread", metadata
+        
         result = extract_from_url(url)
         content = result["content"]
         metadata = {
