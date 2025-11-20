@@ -1,0 +1,15 @@
+notion:
+  databases:
+    default: ""  # Set this or use NOTION_DEFAULT_DATABASE_ID in .env
+    research: ""
+    articles: ""
+
+anthropic:
+  model: "claude-3-5-haiku-20241022"
+  max_tokens: 1000
+
+processing:
+  title_max_length: 60
+  content_preview_length: 2000
+  add_source_metadata: true
+
