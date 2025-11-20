@@ -2,11 +2,38 @@
 
 from __future__ import annotations
 
+import importlib.util
 import logging
+import sys
 from datetime import datetime
+from importlib.machinery import PathFinder
+from types import ModuleType
 from typing import Any, Dict, Iterable, List, Optional
 
+imp_module = sys.modules.get("imp")
+if imp_module is None:
+    imp_module = ModuleType("imp")
+    sys.modules["imp"] = imp_module
+
 from src.extractors.twitter_utils import TWITTER_STATUS_PATTERN
+
+
+def _ensure_imp_find_module() -> None:
+    """Patch imp.find_module to use importlib on Python 3.13+."""
+    if hasattr(imp_module, "find_module"):
+        return
+
+    def _find_module(name: str, path: Optional[list[str]] = None):
+        spec = PathFinder().find_spec(name, path)
+        if spec is None:
+            raise ModuleNotFoundError(name)
+        origin = spec.origin or ""
+        return None, origin, ("", "", 0)
+
+    setattr(imp_module, "find_module", _find_module)
+
+
+_ensure_imp_find_module()
 
 try:
     import snscrape.modules.twitter as sntwitter

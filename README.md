@@ -9,6 +9,7 @@ A Python CLI tool that extracts content from images, PDFs, URLs, and text; gener
 - **AI-Powered Titles**: Automatically generates concise, descriptive titles using Claude Haiku 4.5
 - **Notion Integration**: Creates properly formatted pages with block structure (paragraphs, headings, lists)
 - **Twitter/X Threads**: Capture threaded tweets (text + linked images) directly from a status URL via the `--enable-twitter` flag
+- **Multi-file Notes**: Repeat `--file` to ingest several files in one command, creating a Notion page per input
 - **Error Handling**: Robust retry logic and rate limiting for API calls
 
 ## Installation
@@ -93,6 +94,7 @@ Or set `NOTION_DEFAULT_DATABASE_ID` in your `.env` file.
 ```bash
 python -m src.main add-note --file path/to/file.pdf
 python -m src.main add-note --file screenshot.png
+python -m src.main add-note --file ~/Downloads/first.txt --file ~/Downloads/second.txt
 ```
 
 ### Add a Note from a URL
@@ -111,12 +113,17 @@ python -m src.main add-note --text "Meeting notes from today's discussion"
 ### Options
 
 - `--file PATH`: Path to file (image, PDF, or text file)
+- `--file PATH`: Path to file (image, PDF, or text file). Repeat to add multiple files in one run.
 - `--url URL`: Web page URL to extract content from
 - `--text TEXT`: Direct text input
 - `--title TITLE`: Override AI-generated title with custom title
 - `--database NAME`: Specify database by name (from config.yaml)
 - `--tags TAGS`: Comma-separated tags to add (future feature)
 - `--enable-twitter`: Opt into Twitter/X thread extraction (requires `snscrape`)
+
+### Twitter Compatibility
+
+Twitter/X threads are optional (guarded by `--enable-twitter`) and the CLI patches `imp.find_module` to rely on `importlib.util.find_spec`, keeping the included `snscrape` dependency working even on Python 3.13 runtimes.
 
 ### Examples
 

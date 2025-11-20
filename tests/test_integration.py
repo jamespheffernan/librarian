@@ -1,14 +1,16 @@
 """Integration tests for the full workflow."""
 
 import pytest
+from click.testing import CliRunner
 from unittest.mock import Mock, patch, MagicMock
 
+from pathlib import Path
 from src.main import (
     _determine_file_type,
     _extract_content_from_text,
     _extract_content_from_url,
+    cli,
 )
-from pathlib import Path
 
 
 def test_determine_file_type():
@@ -99,4 +101,57 @@ def test_full_workflow_text_input(
     content, source_type, metadata = _extract_content_from_text("Test content")
     assert content == "Test content"
     assert source_type == "text"
+
+
+@patch("src.main.create_page")
+@patch("src.main.get_database_id")
+@patch("src.main.clean_content")
+@patch("src.main.generate_title")
+@patch("src.main._extract_content_from_file")
+def test_add_note_multiple_files(
+    mock_extract_file,
+    mock_generate_title,
+    mock_clean_content,
+    mock_get_database_id,
+    mock_create_page,
+    tmp_path,
+):
+    """Ensure multiple --file arguments generate multiple pages."""
+    outputs = {
+        "file-a.txt": ("A content", "text", {"filename": "file-a.txt"}),
+        "file-b.txt": ("B content", "text", {"filename": "file-b.txt"}),
+    }
+
+    def fake_extract(path):
+        return outputs[Path(path).name]
+
+    mock_extract_file.side_effect = fake_extract
+    mock_generate_title.side_effect = ["Title A", "Title B"]
+    mock_clean_content.side_effect = lambda content, **kwargs: f"cleaned-{content}"
+    mock_get_database_id.return_value = "db-123"
+    mock_create_page.side_effect = ["page-a", "page-b"]
+
+    file_a = tmp_path / "file-a.txt"
+    file_b = tmp_path / "file-b.txt"
+    file_a.write_text("Sample A")
+    file_b.write_text("Sample B")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "add-note",
+            "--file",
+            str(file_a),
+            "--file",
+            str(file_b),
+            "--database",
+            "default",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert mock_generate_title.call_count == 2
+    assert mock_clean_content.call_count == 2
+    assert mock_create_page.call_count == 2
 

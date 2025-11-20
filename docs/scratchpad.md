@@ -30,4 +30,6 @@ The project is ready for use. Users need to:
 4. Run: `python -m src.main add-note --file/--url/--text <input>`
 
 - Twitter thread extraction is opt-in via `--enable-twitter`, keeping the CLI light when not needed.
+- Compatibility shim patches `imp.find_module` (via `PathFinder`) so `snscrape` keeps working on Python 3.13.
+- Provide multiple `--file` arguments to add several files in one invocation; each file becomes its own Notion page.
 
