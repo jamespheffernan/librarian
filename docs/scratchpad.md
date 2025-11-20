@@ -29,3 +29,5 @@ The project is ready for use. Users need to:
 3. Configure Notion integration (see README.md)
 4. Run: `python -m src.main add-note --file/--url/--text <input>`
 
+- Twitter thread extraction is opt-in via `--enable-twitter`, keeping the CLI light when not needed.
+

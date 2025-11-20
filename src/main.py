@@ -3,7 +3,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import click
 
@@ -11,10 +11,9 @@ from src.extractors import (
     extract_from_image,
     extract_from_pdf,
     extract_from_text,
-    extract_twitter_thread,
     extract_from_url,
-    looks_like_twitter_thread,
 )
+from src.extractors.twitter_utils import looks_like_twitter_status
 from src.notion import create_page, get_database_id
 from src.processors import clean_content, generate_title
 
@@ -81,7 +80,11 @@ def _extract_content_from_file(file_path: str) -> tuple[str, str, dict]:
         sys.exit(1)
 
 
-def _extract_content_from_url(url: str) -> tuple[str, str, dict]:
+def _extract_content_from_url(
+    url: str,
+    enable_twitter: bool = False,
+    _twitter_extractor: Optional[Callable[[str], dict]] = None,
+) -> tuple[str, str, dict]:
     """
     Extract content from a URL.
     
@@ -91,16 +94,27 @@ def _extract_content_from_url(url: str) -> tuple[str, str, dict]:
     click.echo(f"Fetching content from URL: {url}")
     
     try:
-        if looks_like_twitter_thread(url):
+        if enable_twitter and looks_like_twitter_status(url):
+            extractor = _twitter_extractor
+            if extractor is None:
+                try:
+                    from src.extractors.twitter import extract_twitter_thread
+                except ImportError as exc:
+                    raise ValueError(
+                        "Twitter thread extraction requires the snscrape dependency. "
+                        "Install it with: pip install snscrape"
+                    ) from exc
+                extractor = extract_twitter_thread
+
             click.echo("Detected Twitter/X thread – fetching threaded tweets")
-            thread_data = extract_twitter_thread(url)
+            thread_data = extractor(url)
             content = thread_data["content"]
             metadata = thread_data.get("metadata", {})
             metadata.setdefault("url", url)
             metadata.setdefault("page_title", thread_data.get("title", ""))
             metadata["source_detail"] = "Twitter thread"
             return content, "twitter-thread", metadata
-        
+
         result = extract_from_url(url)
         content = result["content"]
         metadata = {
@@ -143,7 +157,8 @@ def _extract_content_from_text(text: str) -> tuple[str, str, dict]:
 @click.option("--title", type=str, help="Override AI-generated title with custom title")
 @click.option("--database", type=str, help="Specify database by name (from config.yaml)")
 @click.option("--tags", type=str, help="Comma-separated tags to add (future feature)")
-def add_note(file, url, text, title, database, tags):
+@click.option("--enable-twitter", is_flag=True, default=False, help="Enable Twitter/X thread extraction (requires snscrape)")
+def add_note(file, url, text, title, database, tags, enable_twitter):
     """Add a note to Notion from file, URL, or text."""
     # Validate that exactly one input type is provided
     input_count = sum([bool(file), bool(url), bool(text)])
@@ -163,7 +178,9 @@ def add_note(file, url, text, title, database, tags):
         if file:
             content, source_type, metadata = _extract_content_from_file(file)
         elif url:
-            content, source_type, metadata = _extract_content_from_url(url)
+            content, source_type, metadata = _extract_content_from_url(
+                url, enable_twitter=enable_twitter
+            )
         else:  # text
             content, source_type, metadata = _extract_content_from_text(text)
         

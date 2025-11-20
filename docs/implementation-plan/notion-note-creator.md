@@ -158,6 +158,7 @@ Build a comprehensive CLI tool that accepts multiple input types (images, PDFs, 
 1. Build `src/extractors/twitter.py` (using `snscrape`) to follow `conversation_id` threads, capture rendered text, and list referenced media.
 2. Update `_extract_content_from_url`/CLI so Twitter thread URLs are routed through the new extractor and metadata (author, tweet count, image URLs) flows into cleaning and title generation.
 3. Add focused tests for Twitter thread handling and document the capability in README/usage notes.
+4. Introduce an `--enable-twitter` flag (with lazy `snscrape` import) so the extractor is opt-in and the CLI stays lightweight when the feature is unused.
 
 ## Project Status Board
 
@@ -197,6 +198,7 @@ None. All phases completed successfully.
 - Notion block content limit is 2000 characters - implemented splitting logic
 - Image extractor converts all formats to RGB JPEG for Claude vision API compatibility
 - Web extractor uses common content selectors to find main article content
+- [2025-11-20] Twitter thread support is now opt-in via `--enable-twitter`, lazily importing `snscrape` so the base CLI stays lean.
 - [2025-11-20] Twitter/X threads now use `snscrape` to follow `conversation_id`s so we capture every tweet + image URL in a thread before creating a Notion page.
 - PDF extractor provides helpful error messages for image-based PDFs
 
@@ -212,6 +214,7 @@ None. All phases completed successfully.
 - `src/main.py` - CLI entry point
 - `src/extractors/` - Content extraction modules
 - `src/extractors/twitter.py` - Twitter/X thread extractor
+- `src/extractors/twitter_utils.py` - Twitter/X URL detection helpers
 - `src/processors/` - AI processing (title generation, cleaning)
 - `src/notion/client.py` - Notion API integration
 - `config/config.yaml` - Configuration

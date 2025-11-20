@@ -8,7 +8,7 @@ A Python CLI tool that extracts content from images, PDFs, URLs, and text; gener
 - **Intelligent Content Extraction**: OCR for images, text extraction for PDFs, web scraping for URLs
 - **AI-Powered Titles**: Automatically generates concise, descriptive titles using Claude Haiku 4.5
 - **Notion Integration**: Creates properly formatted pages with block structure (paragraphs, headings, lists)
-- **Twitter/X Threads**: Capture threaded tweets (text + linked images) directly from a status URL
+- **Twitter/X Threads**: Capture threaded tweets (text + linked images) directly from a status URL via the `--enable-twitter` flag
 - **Error Handling**: Robust retry logic and rate limiting for API calls
 
 ## Installation
@@ -99,7 +99,7 @@ python -m src.main add-note --file screenshot.png
 
 ```bash
 python -m src.main add-note --url https://example.com/article
-python -m src.main add-note --url https://twitter.com/jane/status/1234567890123456789
+python -m src.main add-note --url https://twitter.com/jane/status/1234567890123456789 --enable-twitter
 ```
 
 ### Add a Note from Text
@@ -116,6 +116,7 @@ python -m src.main add-note --text "Meeting notes from today's discussion"
 - `--title TITLE`: Override AI-generated title with custom title
 - `--database NAME`: Specify database by name (from config.yaml)
 - `--tags TAGS`: Comma-separated tags to add (future feature)
+- `--enable-twitter`: Opt into Twitter/X thread extraction (requires `snscrape`)
 
 ### Examples
 

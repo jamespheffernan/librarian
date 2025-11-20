@@ -3,7 +3,11 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from src.main import _determine_file_type, _extract_content_from_text
+from src.main import (
+    _determine_file_type,
+    _extract_content_from_text,
+    _extract_content_from_url,
+)
 from pathlib import Path
 
 
@@ -24,6 +28,50 @@ def test_extract_content_from_text():
     assert content == "Test content here"
     assert source_type == "text"
     assert isinstance(metadata, dict)
+
+
+def test_extract_content_from_url_defaults_to_web(monkeypatch):
+    """Ensure web extraction is used when Twitter flag is disabled."""
+    monkeypatch.setattr("src.main.looks_like_twitter_status", lambda url: True)
+    called = {}
+
+    def fake_web_extractor(url):
+        called["url"] = url
+        return {"content": "page data", "title": "Page", "url": url}
+
+    monkeypatch.setattr("src.main.extract_from_url", fake_web_extractor)
+
+    content, source_type, metadata = _extract_content_from_url(
+        "https://mobile.twitter.com/test/status/1",
+        enable_twitter=False,
+    )
+
+    assert source_type == "url"
+    assert metadata["url"] == "https://mobile.twitter.com/test/status/1"
+    assert called["url"] == metadata["url"]
+    assert content == "page data"
+
+
+def test_extract_content_from_url_twitter_thread(monkeypatch):
+    """Twitter thread extraction should honor the enable flag."""
+    monkeypatch.setattr("src.main.looks_like_twitter_status", lambda url: True)
+
+    fake_thread = {
+        "content": "Thread overview",
+        "title": "Timeline thread",
+        "metadata": {"thread_author": "tester"},
+    }
+
+    content, source_type, metadata = _extract_content_from_url(
+        "https://twitter.com/test/status/2",
+        enable_twitter=True,
+        _twitter_extractor=lambda url: fake_thread,
+    )
+
+    assert source_type == "twitter-thread"
+    assert content == "Thread overview"
+    assert metadata["thread_author"] == "tester"
+    assert metadata["source_detail"] == "Twitter thread"
 
 
 @patch("src.main.extract_from_text")

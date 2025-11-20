@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
-import re
 from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
+
+from src.extractors.twitter_utils import TWITTER_STATUS_PATTERN
 
 try:
     import snscrape.modules.twitter as sntwitter
@@ -13,11 +14,6 @@ except ImportError:  # pragma: no cover
     sntwitter = None
 
 logger = logging.getLogger(__name__)
-
-TWITTER_STATUS_PATTERN = re.compile(
-    r"https?://(?:www\.)?(?:mobile\.)?(?:x|twitter)\.com/[^/]+/status(?:es)?/(?P<id>\d+)",
-    re.IGNORECASE,
-)
 
 
 def _ensure_snscrape_available() -> None:
@@ -145,6 +141,4 @@ def extract_twitter_thread(
     }
 
 
-def looks_like_twitter_thread(url: str) -> bool:
-    return bool(TWITTER_STATUS_PATTERN.search(url))
 

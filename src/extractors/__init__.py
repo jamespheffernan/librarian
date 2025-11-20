@@ -3,10 +3,6 @@
 from src.extractors.image import extract_from_image
 from src.extractors.pdf import extract_from_pdf
 from src.extractors.text import extract_from_text
-from src.extractors.twitter import (
-    extract_twitter_thread,
-    looks_like_twitter_thread,
-)
 from src.extractors.web import extract_from_url
 
 __all__ = [
@@ -14,6 +10,4 @@ __all__ = [
     "extract_from_pdf",
     "extract_from_text",
     "extract_from_url",
-    "extract_twitter_thread",
-    "looks_like_twitter_thread",
 ]

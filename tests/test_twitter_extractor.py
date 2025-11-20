@@ -5,10 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.extractors.twitter import (
-    extract_twitter_thread,
-    looks_like_twitter_thread,
-)
+from src.extractors.twitter import extract_twitter_thread
+from src.extractors.twitter_utils import looks_like_twitter_status
 
 
 class _FakeTweet:
@@ -32,9 +30,9 @@ class _FakeTweet:
 
 
 def test_looks_like_twitter_thread():
-    assert looks_like_twitter_thread("https://twitter.com/john/status/1234567890")
-    assert looks_like_twitter_thread("https://x.com/alice/statuses/987654321")
-    assert not looks_like_twitter_thread("https://example.com/article")
+    assert looks_like_twitter_status("https://twitter.com/john/status/1234567890")
+    assert looks_like_twitter_status("https://x.com/alice/statuses/987654321")
+    assert not looks_like_twitter_status("https://example.com/article")
 
 
 def test_extract_twitter_thread_invalid_url():
