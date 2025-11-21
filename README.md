@@ -121,6 +121,10 @@ python -m src.main add-note --text "Meeting notes from today's discussion"
 - `--tags TAGS`: Comma-separated tags to add (future feature)
 - `--enable-twitter`: Opt into Twitter/X thread extraction (requires `snscrape`)
 
+## macOS Share Workflow
+
+Use `python -m scripts.macos_share_action` to bridge Finder quick actions or share-sheet workflows into the Notion CLI. The helper decides between files, URLs, and piped text, then forwards the relevant flags to `src.main add-note`. Follow the step-by-step guide in `docs/macos-share-extension.md` to wire it up via Automator or Shortcuts, including example shell scripts and recommended Quick Action settings.
+
 ### Twitter Compatibility
 
 Twitter/X threads are optional (guarded by `--enable-twitter`) and the CLI patches `imp.find_module` to rely on `importlib.util.find_spec`, keeping the included `snscrape` dependency working even on Python 3.13 runtimes.
